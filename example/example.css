@@ -1,0 +1,39 @@
+.ml-1em {
+    margin-left: 1em;
+}
+
+.ml-2em {
+    margin-left: 2em;
+}
+
+.color-navy {
+    color: navy;
+}
+
+.color-purple {
+    color: purple;
+}
+
+.color-darkslategray {
+    color: darkslategray;
+}
+
+.color-gray {
+    color: gray;
+}
+
+.color-blue {
+    color: blue;
+}
+
+.color-dodgerblue {
+    color: dodgerblue;
+}
+
+.bold {
+    font-weight: bold;
+}
+
+.italic {
+    font-style: italic;
+}

@@ -1,0 +1,11 @@
+curl 'https://translate.google.com/translate_tts?ie=UTF-8&q=hello%20shit%20man&tl=en&client=tw-ob' \
+    > hello.mp3 2>/dev/null
+    -H 'Referer: http://translate.google.com/' \
+    -H 'User-Agent: stagefright/1.2 (Linux;Android 9.0)' \
+
+gtts-cli 'hello shit man' --slow --output hello.mp3
+
+# Unpack mdx
+pyglossary dictionary.mdx dictionary.json
+# Pack all
+python3 write_mdx.py

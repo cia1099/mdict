@@ -1,0 +1,16 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+pyglossary = "*"
+mdict-utils = "*"
+gtts = "*"
+httpx = "*"
+
+[dev-packages]
+black = {extras = ["d"], version = "*"}
+
+[requires]
+python_version = "3.12"
