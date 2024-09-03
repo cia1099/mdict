@@ -38,25 +38,24 @@ async def rpc_gtts(text: str, lang: str = "en", dir: str = ""):
 The text is contents which you want to text to sound, lang is desired language, dir is target directory you want to save, `example` is our usage case in here. We used first word of text as our stem name, and we used async declaration because this function is heavy I/O operation. Using even loop is the most efficient way to handle tremendous requests concurrently, which save our life.
 ```py
 import asyncio
-import json
+import json, time
 from pathlib import Path
-from typing import Coroutine
+from typing import Coroutine, AsyncGenerator
 
-async def run_together(coroutines: list[Coroutine]):
-    if len(coroutines) < 1:
-        print("There is no any Coroutine")
-        return
-    print(f"Request {len(coroutines)} GTTs services concurrently")
+async def run_together(coroutines: AsyncGenerator[None, Coroutine]):
+    print("Start to fetch sound files...", end="")
+    tic = time.time()
     await asyncio.gather(*coroutines)
+    print(f" elapsed {(time.time()-tic)*1e3:.4f} ms")
 
 with open("example.json", 'r') as rf:
     dictionary = json.load(rf)
 
 dict_dir = Path("example")
 asyncio.run(
-        run_together([
+        run_together((
             rpc_gtts(word, dir=str(dict_dir)) for word in dictionary.keys() if not (dict_dir / f"{word}.mp3").exists()
-        ])
+        ))
     )
 ```
 When you executed above code, you would get `.mp3` files in `example` folder. Now we have our pronunciation files, congratulation Dude!

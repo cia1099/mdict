@@ -1,6 +1,6 @@
 from __future__ import unicode_literals
-import asyncio, os
-from typing import Coroutine
+import asyncio, os, time
+from typing import Coroutine, AsyncGenerator
 from pathlib import Path
 from mdict_utils.base.writemdict import MDictWriter
 
@@ -22,12 +22,11 @@ def parse2template(word: str, pos: str, definition: str) -> str:
     return html.replace("\n", "")
 
 
-async def run_together(coroutines: list[Coroutine]):
-    if len(coroutines) < 1:
-        print("There is no any Coroutine")
-        return
-    print(f"Request {len(coroutines)} GTTs services concurrently")
+async def run_together(coroutines: AsyncGenerator[None, Coroutine]):
+    print("Start to fetch sound files...", end="")
+    tic = time.time()
     await asyncio.gather(*coroutines)
+    print(f" elapsed {(time.time()-tic)*1e3:.4f} ms")
 
 
 if __name__ == "__main__":
@@ -44,11 +43,11 @@ if __name__ == "__main__":
         print(f"'{str(dict_dir)}' directory already exists")
     asyncio.run(
         run_together(
-            [
+            (
                 rpc_gtts(word, dir=str(dict_dir))
                 for word in dictionary.keys()
                 if not (dict_dir / f"{word}.mp3").exists()
-            ]
+            )
         )
     )
     writer = MDictWriter(
