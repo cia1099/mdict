@@ -1,6 +1,6 @@
 from __future__ import unicode_literals
 import asyncio, os, time
-from typing import Coroutine, AsyncGenerator
+from typing import Coroutine, AsyncIterable
 from pathlib import Path
 from mdict_utils.base.writemdict import MDictWriter
 
@@ -22,7 +22,7 @@ def parse2template(word: str, pos: str, definition: str) -> str:
     return html.replace("\n", "")
 
 
-async def run_together(coroutines: AsyncGenerator[None, Coroutine]):
+async def run_together(coroutines: AsyncIterable[Coroutine]):
     print("Start to fetch sound files...", end="")
     tic = time.time()
     await asyncio.gather(*coroutines)

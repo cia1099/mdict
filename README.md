@@ -40,9 +40,9 @@ The text is contents which you want to text to sound, lang is desired language, 
 import asyncio
 import json, time
 from pathlib import Path
-from typing import Coroutine, AsyncGenerator
+from typing import Coroutine, AsyncIterable
 
-async def run_together(coroutines: AsyncGenerator[None, Coroutine]):
+async def run_together(coroutines: AsyncIterable[Coroutine]):
     print("Start to fetch sound files...", end="")
     tic = time.time()
     await asyncio.gather(*coroutines)
