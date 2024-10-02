@@ -1,7 +1,9 @@
+from io import BytesIO
 import asyncio
 from pathlib import Path
 from httpx import AsyncClient, HTTPStatusError
-from gtts import gTTS
+from gTTS.gtts import gTTS
+import pyglet
 
 
 async def get_gtts(text: str, lang: str = "en"):
@@ -37,6 +39,19 @@ async def rpc_gtts(text: str, lang: str = "en", dir: str = ""):
     tts.save(str(Path(dir) / filename))
 
 
+def direct_gtts(text: str, tld: str):
+    tts = gTTS(text, lang="en", tld=tld)
+    with BytesIO() as mp3_fp:
+        tts.write_to_fp(mp3_fp)
+        mp3_fp.seek(0)
+        player = pyglet.media.load("_.mp3", file=mp3_fp).play()
+        while player.playing:
+            pyglet.app.platform_event_loop.dispatch_posted_events()
+            pyglet.clock.tick()
+    print("terminal gtts")
+
+
 if __name__ == "__main__":
     # asyncio.run(get_gtts("Hi fuck your mother"))
-    asyncio.run(rpc_gtts("Hi fuck your mother", dir="mdd_dict"))
+    # asyncio.run(rpc_gtts("Hi fuck your mother", dir="mdd_dict"))
+    direct_gtts("Hello, shit man!", tld="co.za")

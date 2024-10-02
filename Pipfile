@@ -8,6 +8,7 @@ pyglossary = "*"
 mdict-utils = "*"
 gtts = "*"
 httpx = "*"
+pyglet = "*"
 
 [dev-packages]
 black = {extras = ["d"], version = "*"}
