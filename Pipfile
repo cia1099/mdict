@@ -9,6 +9,9 @@ mdict-utils = "*"
 gtts = "*"
 httpx = "*"
 pyglet = "*"
+beautifulsoup4 = "*"
+sqlalchemy = "*"
+lxml = "*"
 
 [dev-packages]
 black = {extras = ["d"], version = "*"}
