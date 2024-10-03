@@ -41,6 +41,7 @@ class Definition(Base):
     word_id = Column(Integer, ForeignKey("words.id"), nullable=False)
     alphabet = Column(String)
     part_of_speech = Column(Enum(PartOfSpeech))
+    chinese = Column(String)
 
 
 class Explanation(Base):
