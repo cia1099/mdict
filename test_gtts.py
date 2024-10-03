@@ -2,7 +2,7 @@ from io import BytesIO
 import asyncio
 from pathlib import Path
 from httpx import AsyncClient, HTTPStatusError
-from gTTS.gtts import gTTS
+from gtts import gTTS
 import pyglet
 
 
