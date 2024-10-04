@@ -39,8 +39,12 @@ class Definition(Base):
     __table_args__ = (Index("UX_speech", "part_of_speech"),)
     id = Column(Integer, primary_key=True)
     word_id = Column(Integer, ForeignKey("words.id"), nullable=False)
-    alphabet = Column(String)
     part_of_speech = Column(Enum(PartOfSpeech))
+    inflection = Column(String)
+    alphabet_us = Column(String)
+    alphabet_uk = Column(String)
+    audio_us = Column(String)
+    audio_uk = Column(String)
     chinese = Column(String)
 
 
@@ -57,8 +61,8 @@ class Explanation(Base):
 class Example(Base):
     __tablename__ = "examples"
     id = Column(Integer, primary_key=True)
-    explanation_id = Column(Integer, ForeignKey("explanations.id"))
-
+    word_id = Column(Integer, ForeignKey("words.id"), nullable=False)
+    explanation_id = Column(Integer, ForeignKey("explanations.id"), nullable=False)
     example = Column(String)
 
 
