@@ -55,13 +55,27 @@ def get_macmillan_tense(word: str) -> dict:
     return dict_tense
 
 
+def get_asset_oxfordstu(soup: BeautifulSoup):
+    path = None
+    try:
+        img = soup.find("div", class_="pic").find("img")
+        path = img["src"].replace("file", "oxfordstu")
+    except:
+        print("No asset in this word")
+    return path
+
+
 def create_oxfordstu_word(word: str):
     mdx_url = "/Users/otto/Downloads/dict/oxfordstu.mdx"
     html = reader.query(mdx_url, word)
     soup = BeautifulSoup(html, "lxml")
-    dict_head = dict()
+    asset = get_asset_oxfordstu(soup)
+    if asset is not None:
+        # insert one asset below
+        print("\x1b[32m%s\x1b[0m" % asset)
     cn_dict, alphabets = get_cambridge_chinese(word)
     tense = get_macmillan_tense(word)
+    dict_head = dict()
     for h_body in soup.find_all("h-g"):
         part_of_speech = h_body.find("z_p").get_text()
         # alphabet = h_body.find("i").get_text() #oxfordstu can't encode utf-8
@@ -102,7 +116,7 @@ def create_oxfordstu_word(word: str):
 
 
 if __name__ == "__main__":
-    query = "record"
+    query = "watch"
     # print(result)
 
     # _, pron_dict = get_cambridge_chinese(query)

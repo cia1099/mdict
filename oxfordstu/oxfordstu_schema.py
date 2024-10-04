@@ -9,18 +9,18 @@ from sqlalchemy import (
     Enum,
     create_engine,
 )
-from sqlalchemy.orm import DeclarativeBase
+from sqlalchemy.orm import DeclarativeBase, Session
 
 
 class PartOfSpeech(enum.Enum):
-    verb = 0
-    noun = 1
-    adjective = 2
-    adverb = 3
-    pronoun = 4
-    preposition = 5
-    conjunction = 6
-    interjection = 7
+    verb = "verb"
+    noun = "noun"
+    adjective = "adjective"
+    adverb = "adverb"
+    pronoun = "pronoun"
+    preposition = "preposition"
+    conjunction = "conjunction"
+    interjection = "interjection"
 
 
 class Base(DeclarativeBase):
@@ -66,7 +66,40 @@ class Example(Base):
     example = Column(String)
 
 
+class Asset(Base):
+    __tablename__ = "assets"
+    id = Column(Integer, primary_key=True)
+    word_id = Column(Integer, ForeignKey("words.id"), nullable=False)
+    filename = Column(String, nullable=False)
+
+
 if __name__ == "__main__":
+    import os
+    import sqlalchemy as sql
+
+    os.system("rm oxfordstu.db")
     DB_URL = "sqlite:///oxfordstu.db"
     engine = create_engine(DB_URL, echo=False)
     Base.metadata.create_all(engine)
+    # with Session(engine) as session:
+    #     idx = 0
+    #     for word in (Word(word="apple") for _ in range(2)):
+    #         session.add(word)
+    #         idx += 1
+    #         print("Had add word index: \x1b[31m%d\x1b[0m" % idx)
+    #     try:
+    #         session.commit()
+    #     except:
+    #         print("Cannot replicate word in database")
+    # Better than Session because it can reserve data when failure
+    with engine.connect() as cursor:
+        idx = 0
+        for _ in range(2):
+            stmt = sql.insert(Word).values(word="apple")
+            try:
+                cursor.execute(stmt)
+                idx += 1
+            except:
+                print("Cannot replicate word in database")
+            print("Had add word index: \x1b[31m%d\x1b[0m" % idx)
+        cursor.commit()
