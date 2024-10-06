@@ -58,7 +58,7 @@ LOGGER_SETTINGS = {
         "file_formatter": {
             "()": JsonFormatter,
             "datefmt": "%Y/%m/%d-%H:%M:%S",
-            "format": "[%(levelname)s]: %(message)s %(created)d %(funcName)s %(asctime)s.%(msecs)03d@%(pathname)s:%(lineno)d",
+            "format": "[%(levelname)s]: %(message)s %(funcName)s %(filename)s:%(lineno)d",
         },
     },
     "filters": {
@@ -98,8 +98,9 @@ LOGGER_SETTINGS = {
     },
 }
 logging.config.dictConfig(LOGGER_SETTINGS)
+log = logging.getLogger("oxfordstu")
+
 if __name__ == "__main__":
-    log = logging.getLogger("oxfordstu")
     log.addHandler(logging.NullHandler())
     # 示例日志
     log.debug("This is a debug message")
