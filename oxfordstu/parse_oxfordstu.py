@@ -22,7 +22,10 @@ def get_alphabet(soup: BeautifulSoup) -> dict:
 def get_cambridge_chinese(word: str) -> tuple[dict]:
     mdx_url = "/Users/otto/Downloads/dict/cambridge4.mdx"
     res = reader.query(mdx_url, word)
-    soup = BeautifulSoup(res, "lxml")
+    try:
+        soup = BeautifulSoup(res, "lxml")
+    except:
+        raise ValueError(f'"{word}" BeautifulSoup parse fail in cambridge')
     cn_dict = dict()
     for entry in soup.find_all("div", class_="entry-body__el"):
         try:
@@ -43,7 +46,10 @@ def get_cambridge_chinese(word: str) -> tuple[dict]:
 def get_macmillan_tense(word: str) -> tuple[dict]:
     mdx_url = "/Users/otto/Downloads/dict/MacmillanEnEn.mdx"
     res = reader.query(mdx_url, word)
-    soup = BeautifulSoup(res, "lxml")
+    try:
+        soup = BeautifulSoup(res, "lxml")
+    except:
+        raise ValueError(f'"{word}" BeautifulSoup parse fail in macmillan')
     dict_tense = dict()
     dict_pron = dict()
     for body in soup.find_all("div", class_="dict-american"):

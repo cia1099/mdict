@@ -107,14 +107,18 @@ def create_oxfordstu_word(
     try:
         soup = BeautifulSoup(html, "lxml")
     except:
-        raise ValueError(f'"{word}" BeautifulSoup parse fail')
+        raise ValueError(f'"{word}" BeautifulSoup parse fail in oxfordstu')
     try:
         cn_dict, alphabets = get_cambridge_chinese(word)
-    except:
+    except Exception as e:
+        if isinstance(e, ValueError):
+            raise
         raise ValueError(f'"{word}" failed getting from cambridge')
     try:
         tense, mac_prons = get_macmillan_tense(word)
-    except:
+    except Exception as e:
+        if isinstance(e, ValueError):
+            raise
         raise ValueError(f'"{word}" failed getting from macmillan')
     for k, v in mac_prons.items():
         if k in alphabets:
