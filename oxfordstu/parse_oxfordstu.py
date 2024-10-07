@@ -40,19 +40,22 @@ def get_cambridge_chinese(word: str) -> tuple[dict]:
     return cn_dict, get_alphabet(soup)
 
 
-def get_macmillan_tense(word: str) -> dict:
+def get_macmillan_tense(word: str) -> tuple[dict]:
     mdx_url = "/Users/otto/Downloads/dict/MacmillanEnEn.mdx"
     res = reader.query(mdx_url, word)
     soup = BeautifulSoup(res, "lxml")
     dict_tense = dict()
+    dict_pron = dict()
     for body in soup.find_all("div", class_="dict-american"):
         pos = body.find("span", class_="part-of-speech-ctx").get_text()
         tenses = ", ".join(
             [h5.get_text() for h5 in body.find_all("span", class_="inflection-entry")]
         )
+        pron = body.find("span", class_="pron").get_text()
         dict_tense[pos] = tenses
+        dict_pron[pos] = pron.replace(" ", "")
     # print(json.dumps(dict_tense))
-    return dict_tense
+    return dict_tense, dict_pron
 
 
 def get_asset_oxfordstu(soup: BeautifulSoup):
@@ -117,9 +120,11 @@ def create_oxfordstu_word(word: str):
 
 
 if __name__ == "__main__":
-    query = "apple"
+    query = "record"
     # print(result)
 
-    # _, pron_dict = get_cambridge_chinese(query)
-    create_oxfordstu_word(query)
-    # get_macmillan_tense(query)
+    _, pron_dict = get_cambridge_chinese(query)
+    print(pron_dict)
+    # create_oxfordstu_word(query)
+    _, p2 = get_macmillan_tense(query)
+    print(p2)
