@@ -84,7 +84,7 @@ LOGGER_SETTINGS = {
             "level": "DEBUG",
             "formatter": "file_formatter",
             "filename": "dict_oxfordstu.log",
-            "maxBytes": 1024 * 1024 * 1024,  # 1 GB
+            "maxBytes": 1024 * 1024 * 50,  # 50 MB
             # "backupCount": 0,
             "encoding": "utf8",
         },

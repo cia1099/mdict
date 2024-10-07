@@ -120,19 +120,19 @@ def create_oxfordstu_word(
             part_of_speech = h_body.find("z_p").get_text()
         except:
             word_idx = remove_word(cursor, word_idx)
-            raise ValueError(f'"{word}" doesn\'t speech in <z_p> tag')
+            raise ValueError(f"[{word}] doesn't speech in <z_p> tag")
         # alphabet = h_body.find("i").get_text() #oxfordstu can't encode utf-8
         alphabet = alphabets.get(part_of_speech, None)
         chinese = cn_dict.get(part_of_speech, None)
         if alphabet is None or chinese is None:
             word_idx = remove_word(cursor, word_idx)
             raise ValueError(
-                f'"{word}" mismatched [{part_of_speech}] in alphabets: {[k for k in alphabets.keys()]}, chinese: {[k for k in cn_dict.keys()]}'
+                f"[{word}] mismatched [{part_of_speech}] in alphabets: {[k for k in alphabets.keys()]}, chinese: {[k for k in cn_dict.keys()]}"
             )
         if len(alphabet) < 2:
             word_idx = remove_word(cursor, word_idx)
             raise ValueError(
-                f'"{word}" failed [{part_of_speech}] fetching in cambridge {[a for a in alphabet]}'
+                f"[{word}] failed [{part_of_speech}] fetching in cambridge {[a for a in alphabet]}"
             )
         inflection = tense.get(part_of_speech, "")
         try:
@@ -140,7 +140,7 @@ def create_oxfordstu_word(
             hrefs = i_body.find_all("a", href=re.compile(r"sound://*"))
         except:
             word_idx = remove_word(cursor, word_idx)
-            raise ValueError(f'"{word}" doesn\'t have <i-g> tag')
+            raise ValueError(f"[{word}] doesn't have <i-g> tag")
         audio_names = [Path(h["href"]).name for h in hrefs]
         # print(", ".join(["\x1b[32m%s\x1b[0m" % name for name in audio_names]))
         # insert one row definition below
@@ -170,7 +170,7 @@ def create_oxfordstu_word(
                 explain = n_body.find("d").get_text()
             except:
                 log.warning(
-                    f"'{word}'({part_of_speech}, id={word_idx}, subscript={subscript}) doesn't have <d> tag in <n-g>"
+                    f"[{word}]({part_of_speech}, id={word_idx}, subscript={subscript}) doesn't have <d> tag in <n-g>"
                 )
                 continue
             # insert one row explanation below
@@ -228,7 +228,7 @@ if __name__ == "__main__":
                     )
                 )
             except ValueError as e:
-                log.debug(f"{e}")
+                log.critical(f"{e}")
 
         cursor.commit()
         log.info(f"Elapsed = {time() - tic:.3f}")
