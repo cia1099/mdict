@@ -3,7 +3,6 @@ from pathlib import Path
 from mdict_utils import reader
 import sqlalchemy as sql
 from bs4 import BeautifulSoup
-from tqdm import tqdm
 from oxfordstu_schema import *
 from log_config import log
 from parse_oxfordstu import (
@@ -19,7 +18,7 @@ def insert_word(cursor: sql.engine.Connection, word_idx: int, word: str) -> int:
         cursor.execute(stmt)
         word_idx += 1
     except:
-        raise ValueError(f"Cannot replicate word({word}) in database")
+        raise ValueError(f"Cannot replicate word({word}, id={word_idx}) in database")
     return word_idx
 
 
@@ -97,30 +96,30 @@ def insert_example(
 
 def create_oxfordstu_word(
     word: str,
+    html: str,
     word_idx: int,
     definition_idx: int,
     explanation_idx: int,
     example_idx: int,
     cursor: sql.engine.Connection,
 ) -> tuple[int]:
-    mdx_url = "/Users/otto/Downloads/dict/oxfordstu.mdx"
-    html = reader.query(mdx_url, word)
     soup = BeautifulSoup(html, "lxml")
     try:
         cn_dict, alphabets = get_cambridge_chinese(word)
     except:
-        raise ValueError(f"{word} failed getting from cambridge")
+        raise ValueError(f"[{word}] failed getting from cambridge")
     try:
         tense = get_macmillan_tense(word)
     except:
-        raise ValueError(f"{word} failed getting from macmillan")
+        raise ValueError(f"[{word}] failed getting from macmillan")
 
     word_idx = insert_word(cursor, word_idx=word_idx, word=word)
-    asset = get_asset_oxfordstu(soup)
-    if asset is not None:
-        insert_asset(cursor, word_idx=word_idx, filename=asset)
     for h_body in soup.find_all("h-g"):
-        part_of_speech = h_body.find("z_p").get_text()
+        try:
+            part_of_speech = h_body.find("z_p").get_text()
+        except:
+            word_idx = remove_word(cursor, word_idx)
+            raise ValueError(f'"{word}" doesn\'t speech in <z_p> tag')
         # alphabet = h_body.find("i").get_text() #oxfordstu can't encode utf-8
         alphabet = alphabets.get(part_of_speech, None)
         chinese = cn_dict.get(part_of_speech, None)
@@ -128,6 +127,11 @@ def create_oxfordstu_word(
             word_idx = remove_word(cursor, word_idx)
             raise ValueError(
                 f'"{word}" mismatched [{part_of_speech}] in alphabets: {[k for k in alphabets.keys()]}, chinese: {[k for k in cn_dict.keys()]}'
+            )
+        if len(alphabet) < 2:
+            word_idx = remove_word(cursor, word_idx)
+            raise ValueError(
+                f'"{word}" failed [{part_of_speech}] fetching in cambridge {[a for a in alphabet]}'
             )
         inflection = tense.get(part_of_speech, "")
         try:
@@ -146,9 +150,9 @@ def create_oxfordstu_word(
             part_of_speech=part_of_speech,
             inflection=inflection,
             alphabet_uk=alphabet[0],
-            alphabet_us=alphabet[1],
+            alphabet_us=alphabet[-1],
             audio_uk=audio_names[0],
-            audio_us=audio_names[1],
+            audio_us=audio_names[-1],
             chinese=chinese,
         )
 
@@ -156,12 +160,18 @@ def create_oxfordstu_word(
             try:
                 subscript = n_body.find(re.compile(r"z_(gr|pt)")).get_text()
             except:
-                log.warning(f"{word} has no subscript in n-g tag")
+                # log.warning(f"{word} has no subscript in n-g tag")
                 subscript = h_body.find(re.compile(r"z_(gr|pt)"))
                 if subscript is not None:
                     subscript = subscript.get_text()
 
-            explain = n_body.find("d").get_text()
+            try:
+                explain = n_body.find("d").get_text()
+            except:
+                log.warning(
+                    f"'{word}'({part_of_speech}, id={word_idx}, subscript={subscript}) doesn't have <d> tag in <n-g>"
+                )
+                continue
             # insert one row explanation below
             explanation_idx = insert_explanation(
                 cursor,
@@ -178,6 +188,10 @@ def create_oxfordstu_word(
                     cursor, word_idx, explanation_idx, example_idx, example=example
                 )
 
+    asset = get_asset_oxfordstu(soup)
+    if asset is not None:
+        insert_asset(cursor, word_idx=word_idx, filename=asset)
+
     return word_idx, definition_idx, explanation_idx, example_idx
 
 
@@ -186,16 +200,24 @@ if __name__ == "__main__":
     DB_URL = "sqlite:///oxfordstu.db"
     MDX_URL = "/Users/otto/Downloads/dict/oxfordstu.mdx"
 
+    # for k, v in reader.tqdm(reader.MDX("example.mdx").items(), total=3):
+    #     word = str(k, "utf-8")
+    #     html = str(v, "utf-8")
+    # print(f"{word}: {html}")
+
     engine = create_engine(DB_URL, echo=False)
     Base.metadata.create_all(engine)
     word_idx, definition_idx, explanation_idx, example_idx = 0, 0, 0, 0
     test_words = ["apple", "record", "watch"]
     with engine.connect() as cursor:
-        for word in test_words:  # tqdm(reader.get_keys(MDX_URL), total=28895):
+        for k, v in reader.tqdm(reader.MDX(MDX_URL).items(), total=28895):
+            word = str(k, "utf-8")
+            html = str(v, "utf-8")
             try:
                 word_idx, definition_idx, explanation_idx, example_idx = (
                     create_oxfordstu_word(
                         word,
+                        html,
                         word_idx,
                         definition_idx,
                         explanation_idx,
