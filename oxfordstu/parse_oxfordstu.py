@@ -61,7 +61,8 @@ def get_asset_oxfordstu(soup: BeautifulSoup):
         img = soup.find("div", class_="pic").find("img")
         path = img["src"].replace("file", "oxfordstu")
     except:
-        print("No asset in this word")
+        pass
+        # print("No asset in this word")
     return path
 
 
@@ -116,7 +117,7 @@ def create_oxfordstu_word(word: str):
 
 
 if __name__ == "__main__":
-    query = "watch"
+    query = "apple"
     # print(result)
 
     # _, pron_dict = get_cambridge_chinese(query)

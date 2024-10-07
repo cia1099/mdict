@@ -12,6 +12,7 @@ pyglet = "*"
 beautifulsoup4 = "*"
 sqlalchemy = "*"
 lxml = "*"
+tqdm = "*"
 
 [dev-packages]
 black = {extras = ["d"], version = "*"}

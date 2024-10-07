@@ -136,4 +136,4 @@ if __name__ == "__main__":
     engine = create_engine(DB_URL, echo=False)
     Base.metadata.create_all(engine)
     # test_duplicate_word(engine)
-    test_array_search(engine)
+    test_inflection_search(engine)

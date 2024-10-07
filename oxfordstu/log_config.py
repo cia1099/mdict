@@ -58,7 +58,7 @@ LOGGER_SETTINGS = {
         "file_formatter": {
             "()": JsonFormatter,
             "datefmt": "%Y/%m/%d-%H:%M:%S",
-            "format": "[%(levelname)s]: %(message)s %(funcName)s %(filename)s:%(lineno)d",
+            "format": "%(message)s %(filename)s:%(lineno)d %(levelname)s",
         },
     },
     "filters": {
