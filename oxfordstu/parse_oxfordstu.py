@@ -47,7 +47,10 @@ def get_macmillan_tense(word: str) -> tuple[dict]:
     dict_tense = dict()
     dict_pron = dict()
     for body in soup.find_all("div", class_="dict-american"):
-        pos = body.find("span", class_="part-of-speech-ctx").get_text()
+        try:
+            pos = body.find("span", class_="part-of-speech-ctx").get_text()
+        except:
+            continue
         tenses = ", ".join(
             [h5.get_text() for h5 in body.find_all("span", class_="inflection-entry")]
         )
@@ -120,11 +123,11 @@ def create_oxfordstu_word(word: str):
 
 
 if __name__ == "__main__":
-    query = "record"
+    query = "fallen"
     # print(result)
 
     _, pron_dict = get_cambridge_chinese(query)
     print(pron_dict)
     # create_oxfordstu_word(query)
-    _, p2 = get_macmillan_tense(query)
+    tense, p2 = get_macmillan_tense(query)
     print(p2)
