@@ -28,7 +28,7 @@ def get_cambridge_chinese(word: str) -> tuple[dict]:
         try:
             pos = entry.find("span", class_="pos").get_text()
         except:
-            print("No subscript in entry-body__el")
+            # print("No subscript in entry-body__el")
             pos = soup.find("span", class_="pos")
             if pos is not None:
                 pos = pos.get_text()

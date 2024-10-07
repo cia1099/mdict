@@ -84,15 +84,20 @@ LOGGER_SETTINGS = {
             "level": "DEBUG",
             "formatter": "file_formatter",
             "filename": "dict_oxfordstu.log",
-            "maxBytes": 1024,  # 1 kB
+            "maxBytes": 1024 * 1024 * 1024,  # 1 GB
             # "backupCount": 0,
             "encoding": "utf8",
         },
     },
     "loggers": {
+        "debug": {
+            "level": "DEBUG",
+            "handlers": ["debug_console", "console"],
+            "propagate": False,  # 防止日志冒泡到根记录器
+        },
         "oxfordstu": {
             "level": "DEBUG",
-            "handlers": ["debug_console", "console", "file"],
+            "handlers": ["file"],
             "propagate": False,  # 防止日志冒泡到根记录器
         },
     },
