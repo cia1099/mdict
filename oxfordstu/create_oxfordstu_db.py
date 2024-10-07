@@ -231,4 +231,7 @@ if __name__ == "__main__":
                 log.critical(f"{e}")
 
         cursor.commit()
-        log.info(f"Elapsed = {time() - tic:.3f}")
+        elapsed = time() - tic
+        log.info(
+            f"Elapsed time = {elapsed//3600:02d}:{(elapsed%3600)//60:02d}:{(elapsed%3600)%60:02d}"
+        )
