@@ -11,10 +11,10 @@ def get_alphabet(soup: BeautifulSoup) -> dict:
         # American phonetic at last
         # pron = pos_header.find_all("span", class_="pron")[-1]
         # pron_dict[pos] = pron.get_text()
-        pron_dict[pos] = [
-            h5.get_text() for h5 in pos_header.find_all("span", class_="pron")
-        ]
-    # print(pron_dict)
+
+        prons = [h5.get_text() for h5 in pos_header.find_all("span", class_="pron")]
+        if len(prons) > 0:
+            pron_dict[pos] = prons
     # print(get_cambridge_chinese(word))
     return pron_dict
 
@@ -22,10 +22,7 @@ def get_alphabet(soup: BeautifulSoup) -> dict:
 def get_cambridge_chinese(word: str) -> tuple[dict]:
     mdx_url = "/Users/otto/Downloads/dict/cambridge4.mdx"
     res = reader.query(mdx_url, word)
-    try:
-        soup = BeautifulSoup(res, "lxml")
-    except:
-        raise ValueError(f'"{word}" BeautifulSoup parse fail in cambridge')
+    soup = BeautifulSoup(res, "lxml")
     cn_dict = dict()
     for entry in soup.find_all("div", class_="entry-body__el"):
         try:
@@ -46,10 +43,7 @@ def get_cambridge_chinese(word: str) -> tuple[dict]:
 def get_macmillan_tense(word: str) -> tuple[dict]:
     mdx_url = "/Users/otto/Downloads/dict/MacmillanEnEn.mdx"
     res = reader.query(mdx_url, word)
-    try:
-        soup = BeautifulSoup(res, "lxml")
-    except:
-        raise ValueError(f'"{word}" BeautifulSoup parse fail in macmillan')
+    soup = BeautifulSoup(res, "lxml")
     dict_tense = dict()
     dict_pron = dict()
     for body in soup.find_all("div", class_="dict-american"):
@@ -60,9 +54,9 @@ def get_macmillan_tense(word: str) -> tuple[dict]:
         tenses = ", ".join(
             [h5.get_text() for h5 in body.find_all("span", class_="inflection-entry")]
         )
-        pron = body.find("span", class_="pron").get_text()
+        prons = [h5.get_text() for h5 in body.find_all("span", class_="pron")]
         dict_tense[pos] = tenses
-        dict_pron[pos] = pron.replace(" ", "")
+        dict_pron[pos] = list(map(lambda s: s.replace(" ", ""), prons))
     # print(json.dumps(dict_tense))
     return dict_tense, dict_pron
 
@@ -129,7 +123,7 @@ def create_oxfordstu_word(word: str):
 
 
 if __name__ == "__main__":
-    query = "fallen"
+    query = "guard"
     # print(result)
 
     _, pron_dict = get_cambridge_chinese(query)

@@ -104,10 +104,7 @@ def create_oxfordstu_word(
     example_idx: int,
     cursor: sql.engine.Connection,
 ) -> tuple[int]:
-    try:
-        soup = BeautifulSoup(html, "lxml")
-    except:
-        raise ValueError(f'"{word}" BeautifulSoup parse fail in oxfordstu')
+    soup = BeautifulSoup(html, "lxml")
     try:
         cn_dict, alphabets = get_cambridge_chinese(word)
     except Exception as e:
@@ -208,7 +205,7 @@ def create_oxfordstu_word(
 
 
 if __name__ == "__main__":
-    os.system("rm oxfordstu.db")
+    os.system("rm oxfordstu.db*")
     DB_URL = "sqlite:///oxfordstu.db"
     MDX_URL = "/Users/otto/Downloads/dict/oxfordstu.mdx"
 
@@ -244,5 +241,5 @@ if __name__ == "__main__":
         cursor.commit()
         elapsed = time() - tic
         log.info(
-            f"Elapsed time = {elapsed//3600:02d}:{(elapsed%3600)//60:02d}:{(elapsed%3600)%60:02d}"
+            f"Elapsed time = {elapsed//3600:02.0f}:{(elapsed%3600)//60:02.0f}:{(elapsed%3600)%60:02.0f}"
         )
