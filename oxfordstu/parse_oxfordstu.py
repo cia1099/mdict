@@ -74,16 +74,17 @@ def get_asset_oxfordstu(soup: BeautifulSoup):
 
 
 def create_oxfordstu_word(soup: BeautifulSoup, log: Logger = None) -> dict:
-    # asset = get_asset_oxfordstu(soup)
-    # if asset is not None:
-    #     # insert one asset below
-    #     print("\x1b[32m%s\x1b[0m" % asset)
     dict_word = dict()
-    for h_body in soup.find_all("h-g"):
+    for h_body in soup.find_all(re.compile(r"(h|dr)-g")):  # ("h-g"):
         try:
             part_of_speech = h_body.find("z_p").get_text()
         except:
-            raise ValueError(f"doesn't speech in <z_p> tag")
+            msg = f"doesn't speech in <z_p> tag"
+            if log:
+                log.debug(msg)
+            else:
+                print(msg)
+            continue
         # alphabet = h_body.find("i").get_text() #oxfordstu can't encode utf-8
         # insert one row definition below
         word_def = []
@@ -135,7 +136,7 @@ if __name__ == "__main__":
     from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor
     from multiprocessing.pool import ThreadPool
 
-    query = "record"
+    query = "evidence"
     mdx_url = "/Users/otto/Downloads/dict/oxfordstu.mdx"
     # print(result)
 
@@ -165,9 +166,7 @@ if __name__ == "__main__":
     oxfordstu_word = create_oxfordstu_word(soup)
     _, pron_dict = get_cambridge_chinese(query)
     tense, p2 = get_macmillan_tense(query)
-    # print(json.dumps(oxfordstu_word))
+    print(json.dumps(oxfordstu_word))
     print(pron_dict)
     print(p2)
-    speech = [p in pron_dict.keys() for p in oxfordstu_word.keys()]
-    print(all(speech + [False]))
     print(f"Elapsed = \x1b[32m{(time()-tic)*1e3:.3f}\x1b[0m msec")
