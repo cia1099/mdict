@@ -138,10 +138,8 @@ def build_oxfordstu_word(
             continue
         alphabet = alphabets.get(part_of_speech, None)
         if len(alphabet) < 1 or not isinstance(alphabet, list):
-            word_idx = remove_word(cursor, word_idx=word_idx, word=word)
-            raise ValueError(
-                f'"{word}"({part_of_speech}) does\'t have alphabet:{alphabet}'
-            )
+            log.warning(f'"{word}"({part_of_speech}) does\'t have alphabet:{alphabet}')
+            continue
         chinese = cn_dict.get(part_of_speech, None)
         inflection = tense.get(part_of_speech, None)
         part_word = part_word_from_dict(word_dict[part_of_speech])
