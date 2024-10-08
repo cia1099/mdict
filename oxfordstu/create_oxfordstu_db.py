@@ -10,7 +10,9 @@ from parse_oxfordstu import (
     get_asset_oxfordstu,
     get_cambridge_chinese,
     get_macmillan_tense,
+    create_oxfordstu_word,
 )
+from model import part_word_from_dict
 
 
 def insert_word(cursor: sql.engine.Connection, word_idx: int, word: str) -> int:
@@ -95,63 +97,49 @@ def insert_example(
     return example_idx
 
 
-def create_oxfordstu_word(
+def build_oxfordstu_word(
     word: str,
-    html: str,
+    soup: BeautifulSoup,
     word_idx: int,
     definition_idx: int,
     explanation_idx: int,
     example_idx: int,
     cursor: sql.engine.Connection,
 ) -> tuple[int]:
-    soup = BeautifulSoup(html, "lxml")
+    from log_config import log
+
     try:
         cn_dict, alphabets = get_cambridge_chinese(word)
-    except Exception as e:
-        if isinstance(e, ValueError):
-            raise
+    except:
         raise ValueError(f'"{word}" failed getting from cambridge')
     try:
         tense, mac_prons = get_macmillan_tense(word)
-    except Exception as e:
-        if isinstance(e, ValueError):
-            raise
+    except:
         raise ValueError(f'"{word}" failed getting from macmillan')
     for k, v in mac_prons.items():
         if k in alphabets:
             continue
         alphabets[k] = v
+    try:
+        word_dict = create_oxfordstu_word(soup, log)
+    except Exception as e:
+        if isinstance(e, ValueError):
+            raise ValueError(f"'{word}' {e}")
+        raise ValueError(f'"{word}" failed getting from oxfordstu')
 
-    word_idx = insert_word(cursor, word_idx=word_idx, word=word)
-    for h_body in soup.find_all("h-g"):
-        try:
-            part_of_speech = h_body.find("z_p").get_text()
-        except:
-            word_idx = remove_word(cursor, word_idx)
-            raise ValueError(f'"{word}" doesn\'t speech in <z_p> tag')
-        # alphabet = h_body.find("i").get_text() #oxfordstu can't encode utf-8
+    if any((speech in alphabets.keys() for speech in word_dict.keys())):
+        word_idx = insert_word(cursor, word_idx=word_idx, word=word)
+    else:
+        raise ValueError(
+            f'"{word}" {[k for k in word_dict.keys()]} mismatched alphabets: {[k for k in alphabets.keys()]}'
+        )
+    for part_of_speech in word_dict:
+        if not part_of_speech in alphabets.keys():
+            continue
         alphabet = alphabets.get(part_of_speech, None)
         chinese = cn_dict.get(part_of_speech, None)
-        if alphabet is None:
-            word_idx = remove_word(cursor, word_idx)
-            raise ValueError(
-                f'"{word}" mismatched [{part_of_speech}] in alphabets: {[k for k in alphabets.keys()]}, chinese: {[k for k in cn_dict.keys()]}'
-            )
-        if len(alphabet) < 1:
-            word_idx = remove_word(cursor, word_idx)
-            raise ValueError(
-                f'"{word}" failed [{part_of_speech}] fetching pronunciation {alphabet}'
-            )
-        inflection = tense.get(part_of_speech, "")
-        try:
-            i_body = h_body.find("i-g")
-            hrefs = i_body.find_all("a", href=re.compile(r"sound://*"))
-        except:
-            word_idx = remove_word(cursor, word_idx)
-            raise ValueError(f'"{word}" doesn\'t have <i-g> tag')
-        audio_names = [Path(h["href"]).name for h in hrefs]
-        # print(", ".join(["\x1b[32m%s\x1b[0m" % name for name in audio_names]))
-        # insert one row definition below
+        inflection = tense.get(part_of_speech, None)
+        part_word = part_word_from_dict(word_dict[part_of_speech])
         definition_idx = insert_definition(
             cursor,
             word_idx,
@@ -160,39 +148,20 @@ def create_oxfordstu_word(
             inflection=inflection,
             alphabet_uk=alphabet[0],
             alphabet_us=alphabet[-1],
-            audio_uk=audio_names[0],
-            audio_us=audio_names[-1],
+            audio_uk=part_word.audio[0],
+            audio_us=part_word.audio[-1],
             chinese=chinese,
         )
-
-        for n_body in h_body.find_all("n-g"):
-            try:
-                subscript = n_body.find(re.compile(r"z_(gr|pt)")).get_text()
-            except:
-                # log.warning(f"{word} has no subscript in n-g tag")
-                subscript = h_body.find(re.compile(r"z_(gr|pt)"))
-                if subscript is not None:
-                    subscript = subscript.get_text()
-
-            try:
-                explain = n_body.find("d").get_text()
-            except:
-                log.warning(
-                    f'"{word}"({part_of_speech}, id={word_idx}, subscript={subscript}) doesn\'t have <d> tag in <n-g>'
-                )
-                continue
-            # insert one row explanation below
+        for explain in part_word.part_word_def:
             explanation_idx = insert_explanation(
                 cursor,
                 word_idx,
                 definition_idx,
                 explanation_idx,
-                subscript=subscript,
-                explain=explain,
+                explain=explain.explanation,
+                subscript=explain.subscript,
             )
-            examples = [h5.get_text() for h5 in n_body.find_all("x")]
-            # insert multiple rows example below
-            for example in examples:
+            for example in explain.examples:
                 example_idx = insert_example(
                     cursor, word_idx, explanation_idx, example_idx, example=example
                 )
@@ -217,18 +186,20 @@ if __name__ == "__main__":
     engine = create_engine(DB_URL, echo=False)
     Base.metadata.create_all(engine)
     word_idx, definition_idx, explanation_idx, example_idx = 0, 0, 0, 0
-    # test_words = ["apple", "record", "watch"]
+    test_words = ["apple", "record", "watch"]
     tic = datetime.now()
     log.info(f"{tic.replace(microsecond=0)} started creating database ...")
     with engine.connect() as cursor:
+        # for word in test_words:
+        #     html = reader.query(MDX_URL, word)
         for k, v in reader.tqdm(reader.MDX(MDX_URL).items(), total=28895):
             word = str(k, "utf-8")
             html = str(v, "utf-8")
             try:
                 word_idx, definition_idx, explanation_idx, example_idx = (
-                    create_oxfordstu_word(
+                    build_oxfordstu_word(
                         word,
-                        html,
+                        BeautifulSoup(html, "lxml"),
                         word_idx,
                         definition_idx,
                         explanation_idx,
