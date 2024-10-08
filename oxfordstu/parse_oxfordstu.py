@@ -56,7 +56,7 @@ def get_macmillan_tense(word: str) -> tuple[dict]:
             [h5.get_text() for h5 in body.find_all("span", class_="inflection-entry")]
         )
         prons = [h5.get_text() for h5 in body.find_all("span", class_="pron")]
-        dict_tense[pos] = tenses
+        dict_tense[pos] = tenses if len(tenses) > 0 else None
         dict_pron[pos] = list(map(lambda s: s.replace(" ", ""), prons))
     # print(json.dumps(dict_tense))
     return dict_tense, dict_pron
@@ -104,11 +104,11 @@ def create_oxfordstu_word(soup: BeautifulSoup, log: Logger = None) -> dict:
                 # explain = n_body.find(re.compile(r"(d|xr-g)")).get_text()
                 explain = n_body.find("d").get_text()
             except:
-                msg = f"\x1b[43m({part_of_speech}, subscript={subscript}) doesn't have <d> tag in <n-g>\x1b[0m"
+                msg = f"({part_of_speech}, subscript={subscript}) doesn't have <d> tag in <n-g>"
                 if log:
                     log.warning(msg)
                 else:
-                    print(msg)
+                    print(f"\x1b[43m{msg}\x1b[0m")
                 continue
             # insert one row explanation below
             examples = [h5.get_text() for h5 in n_body.find_all("x")]
