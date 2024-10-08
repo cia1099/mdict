@@ -1,6 +1,6 @@
 import os, re
 from pathlib import Path
-from time import time
+from datetime import datetime
 from mdict_utils import reader
 import sqlalchemy as sql
 from bs4 import BeautifulSoup
@@ -218,7 +218,8 @@ if __name__ == "__main__":
     Base.metadata.create_all(engine)
     word_idx, definition_idx, explanation_idx, example_idx = 0, 0, 0, 0
     # test_words = ["apple", "record", "watch"]
-    tic = time()
+    tic = datetime.now()
+    log.info(f"{tic.replace(microsecond=0)} started creating database ...")
     with engine.connect() as cursor:
         for k, v in reader.tqdm(reader.MDX(MDX_URL).items(), total=28895):
             word = str(k, "utf-8")
@@ -239,7 +240,9 @@ if __name__ == "__main__":
                 log.critical(f"{e}")
 
         cursor.commit()
-        elapsed = time() - tic
+        toc = datetime.now()
+        log.info(f"{toc.replace(microsecond=0)} finished progress ...")
+        elapsed = toc.timestamp() - tic.timestamp()
         log.info(
             f"Elapsed time = {elapsed//3600:02.0f}:{(elapsed%3600)//60:02.0f}:{(elapsed%3600)%60:02.0f}"
         )
