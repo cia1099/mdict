@@ -96,7 +96,7 @@ LOGGER_SETTINGS = {
             "propagate": False,  # 防止日志冒泡到根记录器
         },
         "oxfordstu": {
-            "level": "DEBUG",
+            "level": "INFO",
             "handlers": ["file"],
             "propagate": False,  # 防止日志冒泡到根记录器
         },

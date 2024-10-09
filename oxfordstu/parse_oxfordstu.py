@@ -73,59 +73,93 @@ def get_asset_oxfordstu(soup: BeautifulSoup):
     return path
 
 
-def create_oxfordstu_word(soup: BeautifulSoup, log: Logger = None) -> dict:
+def create_oxfordstu_word(soup: BeautifulSoup, word: str, log: Logger = None) -> dict:
     dict_word = dict()
-    for h_body in soup.find_all(re.compile(r"(h|dr)-g")):  # ("h-g"):
+    for h_body in soup.find_all("h-g"):
         try:
             part_of_speech = h_body.find("z_p").get_text()
         except:
-            msg = f"doesn't speech in <z_p> tag"
+            msg = f"'{word}' doesn't speech in <z_p> tag"
             if log:
                 log.debug(msg)
             else:
                 print(msg)
             continue
         # alphabet = h_body.find("i").get_text() #oxfordstu can't encode utf-8
-        # insert one row definition below
-        word_def = []
+        word_defs = []
         for n_body in h_body.find_all("n-g"):
             try:
                 subscript = n_body.find(re.compile(r"z_(gr|pt)")).get_text()
             except:
-                msg = "No subscript in n-g tag"
+                msg = f"'{word}' No subscript in n-g tag"
                 if log:
                     log.debug(msg)
                 else:
                     print(msg)
-                subscript = h_body.find(re.compile(r"z_(gr|pt)"))
+                subscript = h_body.find(re.compile(r"(z_(gr|pt)|gram-g)"))
                 if subscript is not None:
                     subscript = subscript.get_text()
 
-            try:
-                # explain = n_body.find(re.compile(r"(d|xr-g)")).get_text()
-                explain = n_body.find("d").get_text()
-            except:
-                msg = f"({part_of_speech}, subscript={subscript}) doesn't have <d> tag in <n-g>"
+                # explain = n_body.find(re.compile(r"(d|xr-g)"))
+            explain = n_body.find("d")
+            if explain is not None:
+                explain = explain.get_text()
+            else:
+                msg = f"'{word}'({part_of_speech}, subscript={subscript}) doesn't have <d> tag in <n-g>"
                 if log:
                     log.warning(msg)
                 else:
                     print(f"\x1b[43m{msg}\x1b[0m")
-                continue
-            # insert one row explanation below
             examples = [h5.get_text() for h5 in n_body.find_all("x")]
-            # insert one row example below
-            word_def.append(
+            word_defs.append(
                 {"explanation": explain, "subscript": subscript, "examples": examples}
             )
 
         try:
             i_body = h_body.find("i-g")
             hrefs = i_body.find_all("a", href=re.compile(r"sound://*"))
+            audio_names = [h["href"].replace("sound", "oxfordstu") for h in hrefs]
         except:
-            raise ValueError(f"doesn't have <i-g> tag")
-        audio_names = [Path(h["href"]).name for h in hrefs]
+            # raise ValueError(f"doesn't have <i-g> tag")
+            audio_names = []
         # print(", ".join(["\x1b[32m%s\x1b[0m" % name for name in audio_names]))
-        dict_word[part_of_speech] = {"def": word_def, "audio": audio_names}
+        dict_word[part_of_speech] = {"def": word_defs, "audio": audio_names}
+    # ===== dr-g
+    for dr_body in soup.find_all("dr-g"):
+        try:
+            part_of_speech = dr_body.find("z_p").get_text()
+        except:
+            msg = f"'{word}' doesn't speech in <z_p> tag"
+            if log:
+                log.debug(msg)
+            else:
+                print(msg)
+            continue
+        subscript = dr_body.find(re.compile(r"(z_(gr|pt)|gram-g)"))
+        if subscript is not None:
+            subscript = subscript.get_text()
+        explain = dr_body.find("d")
+        if explain is not None:
+            explain = explain.get_text()
+        else:
+            msg = f"'{word}'({part_of_speech}, subscript={subscript}) doesn't have <d> tag in <dr-g>"
+            if log:
+                log.warning(msg)
+            else:
+                print(f"\x1b[43m{msg}\x1b[0m")
+        examples = [h5.get_text() for h5 in dr_body.find_all("x")]
+        word_def = {
+            "explanation": explain,
+            "subscript": subscript,
+            "examples": examples,
+        }
+        try:
+            i_body = dr_body.find("i-g")
+            hrefs = i_body.find_all("a", href=re.compile(r"sound://*"))
+            audio_names = [h["href"].replace("sound", "oxfordstu") for h in hrefs]
+        except:
+            audio_names = []
+        dict_word[part_of_speech] = {"def": [word_def], "audio": audio_names}
 
     # print(json.dumps(dict_word))
     return dict_word
@@ -136,7 +170,7 @@ if __name__ == "__main__":
     from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor
     from multiprocessing.pool import ThreadPool
 
-    query = "evidence"
+    query = "apple"
     mdx_url = "/Users/otto/Downloads/dict/oxfordstu.mdx"
     # print(result)
 
@@ -163,7 +197,7 @@ if __name__ == "__main__":
     # oxfordstu_word = create_oxfordstu_word(soup)
     # _, pron_dict, _, p2 = futures.get()
     ## ---- Single core: 388 ms
-    oxfordstu_word = create_oxfordstu_word(soup)
+    oxfordstu_word = create_oxfordstu_word(soup, query)
     _, pron_dict = get_cambridge_chinese(query)
     tense, p2 = get_macmillan_tense(query)
     print(json.dumps(oxfordstu_word))

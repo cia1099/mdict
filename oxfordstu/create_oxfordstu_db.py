@@ -121,7 +121,7 @@ def build_oxfordstu_word(
             continue
         alphabets[k] = v
     try:
-        word_dict = create_oxfordstu_word(soup, log)
+        word_dict = create_oxfordstu_word(soup, word, log)
     except Exception as e:
         if isinstance(e, ValueError):
             raise ValueError(f"'{word}' {e}")
@@ -137,9 +137,9 @@ def build_oxfordstu_word(
         if not part_of_speech in alphabets.keys():
             continue
         alphabet = alphabets.get(part_of_speech, None)
-        if len(alphabet) < 1 or not isinstance(alphabet, list):
-            log.warning(f'"{word}"({part_of_speech}) does\'t have alphabet:{alphabet}')
-            continue
+        # if len(alphabet) < 1 or not isinstance(alphabet, list):
+        #     log.warning(f'"{word}"({part_of_speech}) does\'t have alphabet:{alphabet}')
+        #     continue
         chinese = cn_dict.get(part_of_speech, None)
         inflection = tense.get(part_of_speech, None)
         part_word = part_word_from_dict(word_dict[part_of_speech])
@@ -149,10 +149,10 @@ def build_oxfordstu_word(
             definition_idx,
             part_of_speech=part_of_speech,
             inflection=inflection,
-            alphabet_uk=alphabet[0],
-            alphabet_us=alphabet[-1],
-            audio_uk=part_word.audio[0],
-            audio_us=part_word.audio[-1],
+            alphabet_uk=alphabet[0] if len(alphabet) > 0 else None,
+            alphabet_us=alphabet[-1] if len(alphabet) > 0 else None,
+            audio_uk=part_word.audio[0] if len(part_word.audio) > 0 else None,
+            audio_us=part_word.audio[-1] if len(part_word.audio) > 0 else None,
             chinese=chinese,
         )
         for explain in part_word.part_word_def:
