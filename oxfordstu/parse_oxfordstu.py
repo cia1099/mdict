@@ -98,9 +98,12 @@ def create_oxfordstu_word(soup: BeautifulSoup, word: str, log: Logger = None) ->
                     print(msg)
                 subscript = h_body.find(re.compile(r"(z_(gr|pt)|gram-g)"))
                 if subscript:
-                    subscript = subscript.get_text()
+                    subscript = (
+                        "".join([f"({n5.get_text()})" for n5 in n_body.find_all("z_s")])
+                        + subscript.get_text()
+                    )
 
-                # explain = n_body.find(re.compile(r"(d|xr-g)"))
+            # explain = n_body.find(re.compile(r"(d|xr-g)"))
             explain = n_body.find("d")
             if explain:
                 explain = explain.get_text()
@@ -138,7 +141,11 @@ def create_oxfordstu_word(soup: BeautifulSoup, word: str, log: Logger = None) ->
             continue
         subscript = dr_body.find(re.compile(r"(z_(gr|pt)|gram-g)"))
         if subscript:
-            subscript = subscript.get_text()
+            subscript = (
+                "".join([f"({dr5.get_text()})" for dr5 in dr_body.find_all("z_s")])
+                + subscript.get_text()
+            )
+
         explain = dr_body.find(re.compile(r"\b(zd|dr)\b"))
         if explain:
             explain = explain.get_text()
@@ -171,7 +178,7 @@ if __name__ == "__main__":
     from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor
     from multiprocessing.pool import ThreadPool
 
-    query = "absent"
+    query = "abdomen"
     mdx_url = "/Users/otto/Downloads/dict/oxfordstu.mdx"
     # print(result)
 
