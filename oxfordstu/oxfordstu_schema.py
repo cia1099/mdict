@@ -54,7 +54,7 @@ class Explanation(Base):
     id = Column(Integer, primary_key=True)
     word_id = Column(Integer, ForeignKey("words.id"), nullable=False)
     definition_id = Column(Integer, ForeignKey("definitions.id"), nullable=False)
-    explain = Column(String)
+    explain = Column(String, nullable=False)
     subscript = Column(String, nullable=True, default=None)
     create_at = Column(Integer, default=int(datetime.now().timestamp()), nullable=False)
 

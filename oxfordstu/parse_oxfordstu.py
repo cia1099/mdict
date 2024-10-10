@@ -97,12 +97,12 @@ def create_oxfordstu_word(soup: BeautifulSoup, word: str, log: Logger = None) ->
                 else:
                     print(msg)
                 subscript = h_body.find(re.compile(r"(z_(gr|pt)|gram-g)"))
-                if subscript is not None:
+                if subscript:
                     subscript = subscript.get_text()
 
                 # explain = n_body.find(re.compile(r"(d|xr-g)"))
             explain = n_body.find("d")
-            if explain is not None:
+            if explain:
                 explain = explain.get_text()
             else:
                 msg = f"'{word}'({part_of_speech}, subscript={subscript}) doesn't have <d> tag in <n-g>"
@@ -136,13 +136,13 @@ def create_oxfordstu_word(soup: BeautifulSoup, word: str, log: Logger = None) ->
                 print(msg)
             continue
         subscript = dr_body.find(re.compile(r"(z_(gr|pt)|gram-g)"))
-        if subscript is not None:
+        if subscript:
             subscript = subscript.get_text()
-        explain = dr_body.find("d")
-        if explain is not None:
+        explain = dr_body.find(re.compile(r"\b(zd|dr)\b"))
+        if explain:
             explain = explain.get_text()
         else:
-            msg = f"'{word}'({part_of_speech}, subscript={subscript}) doesn't have <d> tag in <dr-g>"
+            msg = f"'{word}'({part_of_speech}, subscript={subscript}) doesn't have <dr|zd> tag in <dr-g>"
             if log:
                 log.warning(msg)
             else:
@@ -170,7 +170,7 @@ if __name__ == "__main__":
     from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor
     from multiprocessing.pool import ThreadPool
 
-    query = "apple"
+    query = "absent"
     mdx_url = "/Users/otto/Downloads/dict/oxfordstu.mdx"
     # print(result)
 

@@ -22,21 +22,21 @@ def to_class(c: Type[T], x: Any) -> dict:
 
 @dataclass
 class Def:
-    explanation: str | None
+    explanation: str
     subscript: str | None
     examples: List[str]
 
     @staticmethod
     def from_dict(obj: Any) -> "Def":
         assert isinstance(obj, dict)
-        explanation = obj.get("explanation")
+        explanation = from_str(obj.get("explanation"))
         subscript = obj.get("subscript")
         examples = from_list(from_str, obj.get("examples"))
         return Def(explanation, subscript, examples)
 
     def to_dict(self) -> dict:
         result: dict = {}
-        result["explanation"] = self.explanation
+        result["explanation"] = from_str(self.explanation)
         result["subscript"] = self.subscript
         result["examples"] = from_list(from_str, self.examples)
         return result
