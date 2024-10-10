@@ -155,6 +155,7 @@ def create_oxfordstu_word(soup: BeautifulSoup, word: str, log: Logger = None) ->
                 log.warning(msg)
             else:
                 print(f"\x1b[43m{msg}\x1b[0m")
+            continue
         examples = [h5.get_text() for h5 in dr_body.find_all("x")]
         word_def = {
             "explanation": explain,
